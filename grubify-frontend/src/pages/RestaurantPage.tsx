@@ -28,11 +28,13 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Restaurant, FoodItem } from '../types';
-import { restaurantService, foodItemService, cartService } from '../services/api';
+import { restaurantService, foodItemService } from '../services/api';
+import { useCart } from '../contexts/CartContext';
 
 const RestaurantPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addItem } = useCart();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,13 +79,8 @@ const RestaurantPage: React.FC = () => {
     if (!selectedItem) return;
 
     try {
-      await cartService.addItem('user123', {
-        foodItemId: selectedItem.id,
-        quantity,
-        specialInstructions,
-      });
+      await addItem(selectedItem.id, quantity, specialInstructions);
       setDialogOpen(false);
-      // You might want to show a success message here
     } catch (err) {
       console.error('Error adding item to cart:', err);
     }

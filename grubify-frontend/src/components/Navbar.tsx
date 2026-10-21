@@ -17,6 +17,7 @@ import {
   Restaurant as RestaurantIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -62,7 +63,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartItemCount] = useState(3); // This would come from a cart context in a real app
+  const { itemCount: cartItemCount } = useCart();
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();

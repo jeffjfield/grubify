@@ -11,6 +11,7 @@ import RestaurantPage from './pages/RestaurantPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
+import { CartProvider } from './contexts/CartContext';
 import './App.css';
 
 const theme = createTheme({
@@ -55,18 +56,20 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <div className="App">
-          <Navbar />
-          <Container maxWidth="xl" sx={{ mt: 3, mb: 3 }}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/restaurant/:id" element={<RestaurantPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/order-tracking/:orderId" element={<OrderTrackingPage />} />
-            </Routes>
-          </Container>
-        </div>
+        <CartProvider>
+          <div className="App">
+            <Navbar />
+            <Container maxWidth="xl" sx={{ mt: 3, mb: 3 }}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/restaurant/:id" element={<RestaurantPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/order-tracking/:orderId" element={<OrderTrackingPage />} />
+              </Routes>
+            </Container>
+          </div>
+        </CartProvider>
       </Router>
     </ThemeProvider>
   );

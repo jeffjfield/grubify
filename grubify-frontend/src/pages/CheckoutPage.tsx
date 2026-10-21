@@ -26,16 +26,16 @@ import {
   LocalAtm as CashIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { Cart, PlaceOrderRequest } from '../types';
-import { cartService, orderService } from '../services/api';
+import { PlaceOrderRequest } from '../types';
+import { orderService } from '../services/api';
+import { useCart } from '../contexts/CartContext';
 
 const steps = ['Delivery Info', 'Payment', 'Review & Place Order'];
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const { cart, loading, clearCart } = useCart();
   const [activeStep, setActiveStep] = useState(0);
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<boolean>(false);
@@ -57,25 +57,10 @@ const CheckoutPage: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchCart();
-  }, []);
-
-  const fetchCart = async () => {
-    try {
-      setLoading(true);
-      const cartData = await cartService.get('user123');
-      setCart(cartData);
-      if (cartData.items.length === 0) {
-        navigate('/cart');
-      }
-      setError(null);
-    } catch (err) {
-      setError('Failed to load cart. Please try again later.');
-      console.error('Error fetching cart:', err);
-    } finally {
-      setLoading(false);
+    if (!loading && cart && cart.items.length === 0) {
+      navigate('/cart');
     }
-  };
+  }, [loading, cart, navigate]);
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -101,7 +86,7 @@ const CheckoutPage: React.FC = () => {
       };
 
       const order = await orderService.place(orderRequest);
-      await cartService.clear('user123');
+      await clearCart();
       navigate(`/order-tracking/${order.id}`);
     } catch (err: any) {
       console.error('Error placing order:', err);
