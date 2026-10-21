@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -19,62 +19,33 @@ import {
   ShoppingCart as CartIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { Cart, CartItem } from '../types';
-import { cartService } from '../services/api';
+import { useCart } from '../contexts/CartContext';
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { cart, loading, error, updateItem, removeItem, clearCart, refreshCart } = useCart();
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
-  const fetchCart = async () => {
-    try {
-      setLoading(true);
-      const cartData = await cartService.get('user123');
-      setCart(cartData);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load cart. Please try again later.');
-      console.error('Error fetching cart:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateQuantity = async (itemId: number, newQuantity: number) => {
+  const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
     if (!cart) return;
-
     try {
-      const updatedCart = await cartService.updateItem('user123', itemId, {
-        quantity: newQuantity,
-        specialInstructions: cart.items.find(item => item.id === itemId)?.specialInstructions || '',
-      });
-      setCart(updatedCart);
+      const item = cart.items.find(i => i.id === itemId);
+      await updateItem(itemId, newQuantity, item?.specialInstructions || '');
     } catch (err) {
       console.error('Error updating cart item:', err);
     }
   };
 
-  const removeItem = async (itemId: number) => {
-    if (!cart) return;
-
+  const handleRemoveItem = async (itemId: number) => {
     try {
-      const updatedCart = await cartService.removeItem('user123', itemId);
-      setCart(updatedCart);
+      await removeItem(itemId);
     } catch (err) {
       console.error('Error removing cart item:', err);
     }
   };
 
-  const clearCart = async () => {
+  const handleClearCart = async () => {
     try {
-      await cartService.clear('user123');
-      setCart({ ...cart!, items: [] });
+      await clearCart();
     } catch (err) {
       console.error('Error clearing cart:', err);
     }
@@ -99,7 +70,7 @@ const CartPage: React.FC = () => {
           {error}
         </Alert>
         <Box display="flex" justifyContent="center" mt={2}>
-          <Button variant="contained" onClick={fetchCart}>
+          <Button variant="contained" onClick={refreshCart}>
             Try Again
           </Button>
         </Box>
@@ -143,7 +114,7 @@ const CartPage: React.FC = () => {
                 </Typography>
                 <Button
                   color="error"
-                  onClick={clearCart}
+                  onClick={handleClearCart}
                   disabled={cart.items.length === 0}
                 >
                   Clear Cart
@@ -184,7 +155,7 @@ const CartPage: React.FC = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <IconButton
                           size="small"
-                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                          onClick={() => handleUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
                         >
                           <RemoveIcon />
                         </IconButton>
@@ -193,14 +164,14 @@ const CartPage: React.FC = () => {
                         </Typography>
                         <IconButton
                           size="small"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                         >
                           <AddIcon />
                         </IconButton>
                       </Box>
                       <IconButton
                         color="error"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => handleRemoveItem(item.id)}
                       >
                         <DeleteIcon />
                       </IconButton>
